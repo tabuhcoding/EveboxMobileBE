@@ -1,0 +1,43 @@
+import { Module } from "@nestjs/common";
+import { JwtModule } from "@nestjs/jwt";
+import { ConfigService, ConfigModule } from '@nestjs/config';
+import { CqrsModule } from '@nestjs/cqrs';
+
+import { LoginUserController } from "./commands/login/login-user.controller";
+import { LoginUserService } from "./commands/login/login-user.service"
+import { JwtStrategy } from '../../shared/strategies/jwt.strategy';
+import { UserRepositoryImpl } from './repositories/user.repository.impl';
+import { LogoutUserController } from './commands/logout/logout-user.controller';
+import { LogoutUserService } from './commands/logout/logout-user.service';
+import { GetUserController } from './queries/get-user/get-user.controller';
+import { GetUserService } from './queries/get-user/get-user.service';
+
+@Module({
+  imports: [
+    ConfigModule,
+    CqrsModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: configService.get<string>('JWT_EXPIRES_IN') },
+      }),
+      inject: [ConfigService],
+    })
+  ],
+  controllers: [
+    LoginUserController,
+    LogoutUserController,
+    GetUserController
+  ],
+  providers: [
+    LoginUserService,
+    LogoutUserService,
+    UserRepositoryImpl,
+    GetUserService,
+    JwtStrategy
+  ],
+  exports: [UserRepositoryImpl],
+})
+
+export class UserModule {}
