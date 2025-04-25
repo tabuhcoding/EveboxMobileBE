@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { CqrsModule } from '@nestjs/cqrs';
 import { UserModule } from './modules/user/user.module';
+import { EventModule } from './modules/event/event.module';
+import { TicketModule } from './modules/ticket/ticket.module';
 import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
 
 @Module({
@@ -14,6 +16,8 @@ import { PrismaModule } from './infrastructure/database/prisma/prisma.module';
     CqrsModule,
 
     UserModule,
+    EventModule,
+    TicketModule
   ],
 })
 export class AppModule {}

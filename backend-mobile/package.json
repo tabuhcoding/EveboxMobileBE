@@ -37,6 +37,7 @@
     "@nestjs/swagger": "^11.1.5",
     "@nestjs/typeorm": "^11.0.0",
     "@prisma/client": "^6.6.0",
+    "@types/multer": "^1.4.12",
     "bcryptjs": "^3.0.2",
     "class-validator": "^0.14.1",
     "cloudinary": "^2.6.0",
