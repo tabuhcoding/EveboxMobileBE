@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Res, HttpStatus, UseGuards, Request } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiHeader, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ErrorHandler } from 'src/shared/exceptions/error.handler';
 import { JwtAuthGuard } from 'src/shared/guard/jwt-auth.guard';
 import { GetUserTicketService } from './getUserTicket.service';
@@ -13,11 +13,7 @@ export class GetUserTicketController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/getUserTicket')
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Bearer token for authorization (`Bearer <token>`)',
-    required: true
-  })
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get status of all payment method' })
   @ApiResponse({
     status: HttpStatus.OK,
