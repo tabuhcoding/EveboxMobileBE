@@ -1,6 +1,6 @@
 import { Controller, Res, Request, HttpStatus, Body, UseGuards, Post } from "@nestjs/common";
 import { Response } from "express";
-import { ApiHeader, ApiOperation, ApiResponse, ApiTags, ApiBody } from "@nestjs/swagger";
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiBody } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/shared/guard/jwt-auth.guard";
 import { CheckInTicketByQrService } from "./checkInTicketByQr.service";
 import { CheckInTicketByQrDto } from "./checkInTicketByQr.dto";
@@ -13,11 +13,7 @@ export class CheckInTicketByQrController {
 
   @UseGuards(JwtAuthGuard)
   @Post('/checkin-qr')
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Bearer token for authorization (`Bearer <token>`)',
-    required: true
-  })
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Checkin ticket' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Ticket checked in successfully by QR', type: CheckInTicketByQrResponseDto })
   @ApiResponse({ status: HttpStatus.BAD_REQUEST, description: 'Invalid input' })

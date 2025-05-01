@@ -1,6 +1,6 @@
 import { Controller, Get, Res, Query, HttpStatus, UseGuards, Request } from "@nestjs/common";
 import { Response } from "express";
-import { ApiHeader, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ErrorHandler } from 'src/shared/exceptions/error.handler';
 import { JwtAuthGuard } from 'src/shared/guard/jwt-auth.guard';
 import { GetCheckedInTicketsService } from "./getCheckedInTickets.service";
@@ -13,11 +13,7 @@ export class GetCheckedInTicketsController {
 
   @UseGuards(JwtAuthGuard)
   @Get('/checkin-tickets')
-  @ApiHeader({
-    name: 'Authorization',
-    description: 'Bearer token for authorization (`Bearer <token>`)',
-    required: true
-  })
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Get checked-in tickets of showing' })
   @ApiQuery({
     name: 'showingId',
