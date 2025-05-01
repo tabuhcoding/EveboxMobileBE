@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { PrismaService } from "src/infrastructure/database/prisma/prisma.service";
 import { Result, Ok, Err } from "oxide.ts";
-import { CheckInTicketResponseData } from "../commands/checkinTicket/checkInTicket-response.dto";
+import { CheckInTicketResponseData } from "../commands/checkInTicket/checkInTicket-response.dto";
 
 @Injectable()
 export class CheckInTicketRepository {
