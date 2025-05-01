@@ -1,6 +1,5 @@
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -201,6 +200,8 @@ model TicketQRCode {
   seatId       Int?
   ticketId     String
   ticketTypeId String?
+  isCheckedIn  Boolean @default(false)
+  checkedBy    String  @default("")
   Ticket       Ticket  @relation(fields: [ticketId], references: [id])
 }
 
@@ -263,6 +264,7 @@ model Events {
   locations                         locations?              @relation(fields: [locationId], references: [id], onDelete: Cascade)
   Showing                           Showing[]
   eventUserRelationships            EventUserRelationship[]
+  UserClickHistory UserClickHistory[]
 }
 
 model Row {
@@ -434,4 +436,15 @@ model EventRole {
   userRoles    EventUserRelationship[]  @relation("EventRoleToEventUserRelationship")
 
   @@map("event_role")
+}
+
+model UserClickHistory {
+  id      String   @id @default(uuid())
+  eventId Int
+  userId  String   // can be a real user ID or random UUID
+  date    DateTime @default(now())
+
+  event Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("user_click_history")
 }
