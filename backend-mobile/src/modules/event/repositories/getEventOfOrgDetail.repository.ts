@@ -68,8 +68,18 @@ export class GetEventOfOrgDetailRepository {
           }
         }
       });
+
+      if (!event) {
+        return Err(new Error('No event found'));
+      }
+
+      const { street, ward, districts } = event.locations ?? {};
+    const districtName = districts?.name || '';
+    const provinceName = districts?.province?.name || '';
+    const locationsString = `${street || ''}, ${ward || ''}, ${districtName}, ${provinceName}`;
       const eventDetail: EventOrgDetailResponseDto = {
         ...event,
+        locationsString,
         EventCategories: event.EventCategories.map(category => ({
           id: category.Categories.id,
           name: category.Categories.name
