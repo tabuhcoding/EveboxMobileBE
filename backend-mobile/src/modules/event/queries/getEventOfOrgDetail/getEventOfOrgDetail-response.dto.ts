@@ -92,6 +92,9 @@ export class EventOrgDetailResponseDto {
 
   @ApiProperty({ type: locationDto })
   locations: locationDto;
+
+  @ApiProperty({ example: '123 abc, Phuong 1, Quan BinH Thanh, TP HCM', description: 'Location string of event' })
+  locationsString: string;
 }
 
 export class EventOrgDetailResponse extends BaseResponse {
