@@ -11,3 +11,10 @@ export interface IOTPData {
   createdAt: Date;
   requestToken: string;
 }
+
+export interface PinStatus {
+  attempts: number,
+  lockedUntil: Date,
+  updatedAt: Date,
+  hashedPin: string,
+}

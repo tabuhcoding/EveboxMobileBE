@@ -14,6 +14,7 @@ export class CheckInTicketByQrRepository {
   
   async checkInByQr(encryptedQrData: string, email: string): Promise<Result<CheckInTicketByQrResponse, Error>> {
     try {
+      console.log("encryptedQrData", encryptedQrData);
       const user = await this.prisma.user.findUnique({
         where: { email }
       })
@@ -21,10 +22,11 @@ export class CheckInTicketByQrRepository {
       if (!user) {
         return Err(new Error(`User with email ${email} not found`))
       }
-
+      console.log("decrypting QR data");
       const decryptedData = decrypt(encryptedQrData);
+      console.log("decryptedData", decryptedData);
       const { ticketQrId, eventId } = decryptedData;
-
+      console.log("ticketQrId", ticketQrId);
       if (!ticketQrId || !eventId) {
         return Err(new Error('Ticket or event is not exist'));
       }

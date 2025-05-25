@@ -65,6 +65,14 @@ export class GetEventOfOrgDetailRepository {
                 }
               }
             }
+          },
+          Showing: {
+            select: {
+                id: true,
+                isFree: true,
+                startTime: true,
+                endTime: true,
+            }
           }
         }
       });
