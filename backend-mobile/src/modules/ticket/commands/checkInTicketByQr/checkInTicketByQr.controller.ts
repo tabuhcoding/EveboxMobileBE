@@ -26,7 +26,6 @@ export class CheckInTicketByQrController {
   ) {
     try {
       const user = req.user;
-
       const result = await this.checkInTicketByQrService.execute(dto.encryptedQrData, user.email);
 
       if (result.isErr()) {
