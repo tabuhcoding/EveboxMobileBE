@@ -10,18 +10,56 @@ import { Name } from '../domain/value-objects/user/name.vo';
 import { Phone } from '../domain/value-objects/user/phone.vo';
 import { ProvinceId } from '../domain/value-objects/user/province-id.vo';
 import { EventBus } from '@nestjs/cqrs';
-import { Prisma, RefreshToken } from '@prisma/client';
-import { IOTPData } from './user.repository.interface';
-import { OTPType } from '../domain/enums/otp-type.enum';
-import { DomainEvent } from 'src/libs/ddd/domain-event.base';
-import { OTP } from '../domain/entities/otp.entity';
+import { Prisma } from '@prisma/client';
+import { PinStatus } from "./user.repository.interface";
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly eventBus: EventBus
-  ) { }
+    private readonly eventBus: EventBus,
+  ) {}
+
+  async updatePinUser(email: Email, pin: string): Promise<void> {
+    await this.prisma.userPin.update({
+      where: { userEmail: email.value },
+      data: {
+        hashedPin: pin,
+        attempts: 0,
+        lockedUntil: null,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  async createPinUser(email: Email, pin: string): Promise<void> {
+    await this.prisma.userPin.create({
+      data: {
+        userEmail: email.value,
+        hashedPin: pin,
+        attempts: 0,
+        lockedUntil: null,
+      },
+    });
+  }
+
+  async findPinStatusByEmail(email: Email): Promise<PinStatus | null> {
+    const pinStatusRecord = await this.prisma.userPin.findUnique({
+      where: { userEmail: email.value },
+      select: {
+        hashedPin: true,
+        attempts: true,
+        lockedUntil: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!pinStatusRecord) {
+      return null;
+    }
+
+    return pinStatusRecord;
+  }
 
   async findByEmail(email: Email): Promise<User | null> {
     const userRecord = await this.prisma.user.findUnique({
@@ -107,12 +145,12 @@ export class UserRepositoryImpl implements UserRepository {
     await this.prisma.refreshToken.updateMany({
       where: {
         email: email,
-        revoked: false
+        revoked: false,
       },
       data: {
-        revoked: true
-      }
-    })
+        revoked: true,
+      },
+    });
   }
 
   private mapToDomain(
@@ -154,7 +192,7 @@ export class UserRepositoryImpl implements UserRepository {
     const phone = phoneOrError.unwrap();
 
     if (!userRecord.role) {
-      throw new Error("Role is null or undefined.");
+      throw new Error('Role is null or undefined.');
     }
     const roleOrError = Role.create(userRecord.role.id);
     if (roleOrError.isErr()) {

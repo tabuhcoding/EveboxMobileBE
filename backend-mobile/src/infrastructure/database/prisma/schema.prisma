@@ -15,13 +15,26 @@ model User {
   password              String                  @db.VarChar(255)
   role_id               Int?
   created_at            DateTime                @default(now())
+  receiveNoti           Boolean                 @default(false)
+  EventUserRelationship EventUserRelationship[]
   FormResponse          FormResponse[]
+  favorite_noti_history favorite_noti_history[]
   refreshTokens         RefreshToken[]
   userProvince          UserProvince[]
   role                  Role?                   @relation(fields: [role_id], references: [id])
-  EventUserRelationship EventUserRelationship[]
-
+  userPin   UserPin?
   @@map("users")
+}
+
+model UserPin {
+  id         Int      @id @default(autoincrement())
+  userEmail     String      @unique @db.VarChar(255)
+  user       User     @relation(fields: [userEmail], references: [email])
+  hashedPin  String
+  attempts   Int      @default(0)
+  lockedUntil DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Role {
@@ -183,14 +196,16 @@ model PaymentMethodStatus {
 }
 
 model OrderInfo {
-  id           String        @id @default(uuid())
-  showingId    String
-  ticketTypeId String?
-  userId       String?
-  quantity     Int?
-  seatId       Int[]
-  status       Int
-  PaymentInfo  PaymentInfo[]
+  id            String        @id @default(uuid())
+  showingId     String
+  ticketTypeId  String?
+  userId        String?
+  quantity      Int?
+  seatId        Int[]
+  status        Int
+  voucherCodeId String?
+  VoucherCode   VoucherCode?  @relation(fields: [voucherCodeId], references: [id])
+  PaymentInfo   PaymentInfo[]
 }
 
 model TicketQRCode {
@@ -259,12 +274,13 @@ model Events {
   deleteAt                          DateTime?
   isOnline                          Boolean                 @default(false)
   EventCategories                   EventCategories[]
+  eventUserRelationships            EventUserRelationship[]
   Images_Events_imgLogoIdToImages   Images?                 @relation("Events_imgLogoIdToImages", fields: [imgLogoId], references: [id])
   Images_Events_imgPosterIdToImages Images?                 @relation("Events_imgPosterIdToImages", fields: [imgPosterId], references: [id])
   locations                         locations?              @relation(fields: [locationId], references: [id], onDelete: Cascade)
   Showing                           Showing[]
-  eventUserRelationships            EventUserRelationship[]
-  UserClickHistory UserClickHistory[]
+  favorite_noti_history             favorite_noti_history[]
+  UserClickHistory                  UserClickHistory[]
 }
 
 model Row {
@@ -377,7 +393,6 @@ model TicketTypeSection {
 
 model OrgPaymentInfo {
   id            String   @id @default(uuid())
-  eventId       Int
   organizerId   String
   accountName   String
   accountNumber String
@@ -389,6 +404,113 @@ model OrgPaymentInfo {
   taxCode       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  isDeleted     Boolean  @default(false)
+  eventId       Int
+}
+
+model EventUserRelationship {
+  eventId   Int
+  userId    String
+  email     String
+  role      Int?
+  role_desc String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  isDeleted Boolean    @default(false)
+  event     Events     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  eventRole EventRole? @relation("EventRoleToEventUserRelationship", fields: [role], references: [id])
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, userId])
+}
+
+model EventRole {
+  id           Int                     @id
+  isEdited     Boolean
+  isSummarized Boolean
+  viewVoucher  Boolean
+  marketing    Boolean
+  viewOrder    Boolean
+  viewSeatmap  Boolean
+  viewMember   Boolean
+  checkin      Boolean
+  checkout     Boolean
+  redeem       Boolean
+  userRoles    EventUserRelationship[] @relation("EventRoleToEventUserRelationship")
+
+  @@map("event_role")
+}
+
+model UserClickHistory {
+  id      String   @id @default(uuid())
+  eventId Int
+  userId  String
+  date    DateTime @default(now())
+  event   Events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("user_click_history")
+}
+
+model VoucherCampaign {
+  id            String        @id
+  name          String
+  createdBy     String
+  creatorRole   CreatorRole
+  organizerId   String?
+  discountType  DiscountType
+  discountValue Int
+  validFrom     DateTime
+  validTo       DateTime
+  eventId       Int?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime
+  VoucherCode   VoucherCode[]
+}
+
+model VoucherCode {
+  id                String              @id
+  campaignId        String
+  code              String
+  isPublic          Boolean             @default(true)
+  maxUsage          Int                 @default(0)
+  maxUsagePerUser   Int                 @default(0)
+  OrderInfo         OrderInfo[]
+  VoucherCampaign   VoucherCampaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  VoucherTargetUser VoucherTargetUser[]
+}
+
+model VoucherTargetUser {
+  id            String      @id
+  voucherCodeId String
+  userId        String      @db.VarChar(255)
+  VoucherCode   VoucherCode @relation(fields: [voucherCodeId], references: [id], onDelete: Cascade)
+}
+
+model favorite_noti_history {
+  id         String   @id
+  userId     String
+  itemType   ItemType
+  orgId      String?
+  eventId    Int?
+  isFavorite Boolean
+  isNotified Boolean
+  Events     Events?  @relation(fields: [eventId], references: [id])
+  users      User     @relation(fields: [userId], references: [id])
+}
+
+model org_payment_infor {
+  id            String   @id
+  organizerId   String
+  accountName   String
+  accountNumber String
+  bankName      String
+  branch        String
+  businessType  Int
+  fullName      String?
+  address       String?
+  taxCode       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
   isDeleted     Boolean  @default(false)
 }
 
@@ -402,49 +524,17 @@ enum PaymentMethod {
   MOMO
 }
 
-model EventUserRelationship {
-  eventId   Int
-  userId    String
-  email     String
-  role      Int?
-  role_desc String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
-
-  event Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  eventRole  EventRole?  @relation("EventRoleToEventUserRelationship", fields: [role], references: [id])
-
-  @@id([eventId, userId])
+enum CreatorRole {
+  ADMIN
+  ORG
 }
 
-
-model EventRole {
-  id           Int    @id
-  isEdited     Boolean
-  isSummarized Boolean
-  viewVoucher  Boolean
-  marketing    Boolean
-  viewOrder    Boolean
-  viewSeatmap  Boolean
-  viewMember   Boolean
-  checkin      Boolean
-  checkout     Boolean
-  redeem       Boolean
-
-  userRoles    EventUserRelationship[]  @relation("EventRoleToEventUserRelationship")
-
-  @@map("event_role")
+enum DiscountType {
+  PERCENTAGE
+  VALUE
 }
 
-model UserClickHistory {
-  id      String   @id @default(uuid())
-  eventId Int
-  userId  String   // can be a real user ID or random UUID
-  date    DateTime @default(now())
-
-  event Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@map("user_click_history")
+enum ItemType {
+  EVENT
+  ORG
 }
