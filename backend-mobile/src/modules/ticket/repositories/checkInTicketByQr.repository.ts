@@ -34,7 +34,8 @@ export class CheckInTicketByQrRepository {
       const result = await this.checkInTicketRepository.checkInTicket(ticketQrId, email, eventId);
 
       if (result.isErr()) {
-        return Err(new Error('Failed to check in ticket by QR'));
+        // return Err(new Error('Failed to check in ticket by QR'));
+        return Err(new Error(result.unwrapErr().message));
       }
 
       return Ok({
